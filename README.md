@@ -2,11 +2,11 @@
 
 CSE 4701 Database Project - Option 5: Real Estate Database (similar to Zillow/Redfin)
 
-## 📋 Project Overview
+## Project Overview
 
 This project implements a comprehensive real estate management database system that tracks agents, buyers, sellers, properties, viewings, offers, and sales. The database is designed to handle concurrent transactions where multiple customers can be interested in the same properties simultaneously.
 
-## 🗄️ Database Schema
+## Database Schema
 
 The database includes the following entities:
 
@@ -20,7 +20,7 @@ The database includes the following entities:
 - **Offers**: Purchase offers with status tracking
 - **Sales**: Completed property transactions
 
-## 📁 Files
+## Files
 
 - **`ddl.sql`** - Complete database schema with all table definitions
 - **`dropddl.sql`** - Drop statements and schema recreation
@@ -30,7 +30,7 @@ The database includes the following entities:
 - **`quick_demo.sql`** - Quick demo queries (10 essential queries)
 - **`DEMO_GUIDE.md`** - Detailed demo guide and documentation
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Create the Database Schema
 ```sql
@@ -56,17 +56,17 @@ The database includes the following entities:
 \i demo_queries.sql
 ```
 
-## ✨ Key Features
+## Key Features
 
-- ✅ **Property Listings**: Track properties with various statuses (On Market, Pending, Sold, etc.)
-- ✅ **Buyer-Seller Matching**: Match buyers with properties within their budget
-- ✅ **Concurrent Transactions**: Handle multiple buyers viewing/making offers on the same property
-- ✅ **Agent Management**: Track agent performance, sales, and commissions
-- ✅ **Sales Tracking**: Record completed sales with prices, dates, and commissions
-- ✅ **Viewing History**: Track buyer property viewings and interests
-- ✅ **Offer Management**: Track purchase offers with status (Pending, Accepted, Rejected, etc.)
+- **Property Listings**: Track properties with various statuses (On Market, Pending, Sold, etc.)
+- **Buyer-Seller Matching**: Match buyers with properties within their budget
+- **Concurrent Transactions**: Handle multiple buyers viewing/making offers on the same property
+- **Agent Management**: Track agent performance, sales, and commissions
+- **Sales Tracking**: Record completed sales with prices, dates, and commissions
+- **Viewing History**: Track buyer property viewings and interests
+- **Offer Management**: Track purchase offers with status (Pending, Accepted, Rejected, etc.)
 
-## 📊 Sample Data Statistics (Large Dataset)
+## Sample Data Statistics (Large Dataset)
 
 - **20 Agents**: Real estate professionals
 - **40 Buyers**: People looking to purchase
@@ -76,7 +76,7 @@ The database includes the following entities:
 - **30 Offers**: Purchase offers in various states
 - **15 Sales**: Completed transactions
 
-## 🔍 Example Queries
+## Example Queries
 
 ### View Properties on the Market
 ```sql
@@ -103,11 +103,11 @@ LEFT JOIN sale s ON a.agent_id = s.listing_agent_id
 GROUP BY a.agent_id, a.name;
 ```
 
-## 📚 Documentation
+## Documentation
 
 See `DEMO_GUIDE.md` for detailed documentation, setup instructions, and demo scenarios.
 
-## 🛠️ Database Compatibility
+## Database Compatibility
 
 The schema uses standard SQL and should work with:
 - PostgreSQL
@@ -117,18 +117,17 @@ The schema uses standard SQL and should work with:
 
 Note: Some aggregate functions (like `STRING_AGG`) may need adjustment based on your database system.
 
-## 📝 Project Requirements
+## Project Requirements
 
 This project fulfills the requirements for CSE 4701 Database Systems course, specifically:
 - Option 5: Real Estate Database (e.g., Zillow, Redfin)
 - Tracks agents, buyers, sellers, properties on the market, and recently sold properties
 - Handles concurrent transactions (multiple customers buying goods at the same time)
 
-## 👥 Author
+## Author
 
 Database Project - CSE 4701
 
-## 📄 License
+## License
 
 This project is for educational purposes.
-
