@@ -606,6 +606,12 @@ async function filterProperties() {
                 filters.status = statusValue;
             }
             
+            // On Buy tab, only show Sale properties (exclude Rent)
+            const currentPage = document.querySelector('.page.active');
+            if (currentPage && currentPage.id === 'buyPage') {
+                filters.listingType = 'Sale';
+            }
+            
             // Fetch filtered properties from Oracle database
             const properties = await window.API.getProperties(filters);
             filteredProperties = properties;
@@ -668,6 +674,12 @@ function filterPropertiesLocal() {
     const statusValue = statusFilter.value;
     if (statusValue) {
         filtered = filtered.filter(p => p.status === statusValue);
+    }
+    
+    // On Buy tab, only show Sale properties (exclude Rent)
+    const currentPage = document.querySelector('.page.active');
+    if (currentPage && currentPage.id === 'buyPage') {
+        filtered = filtered.filter(p => p.listing_type === 'Sale' || !p.listing_type);
     }
 
     filteredProperties = filtered;
