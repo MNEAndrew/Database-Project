@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate - Find Your Dream Home</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <h1>RealEstate</h1>
+            </div>
+            <nav class="nav">
+                <a href="#" class="nav-link active">Buy</a>
+                <a href="#" class="nav-link">Rent</a>
+                <a href="#" class="nav-link">Sell</a>
+                <a href="#" class="nav-link">Agent finder</a>
+            </nav>
+            <div class="header-actions">
+                <div id="userMenu" class="user-menu" style="display: none;">
+                    <div class="user-info">
+                        <div class="user-info-text">
+                            <span id="userName" class="user-name"></span>
+                            <span id="userType" class="user-type"></span>
+                        </div>
+                    </div>
+                    <button id="settingsBtn" class="btn-secondary">Settings</button>
+                    <button id="logoutBtn" class="btn-secondary">Logout</button>
+                </div>
+                <div id="authButtons" class="auth-buttons">
+                    <a href="#" id="signInBtn" class="btn-secondary">Sign in</a>
+                    <a href="#" id="joinBtn" class="btn-primary">Join</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="search-container">
+            <h2 class="search-title">Find your place</h2>
+            <div class="search-box">
+                <div class="search-input-group">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Enter an address, neighborhood, city, or ZIP code">
+                    <button class="search-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="filters-section">
+        <div class="filters-container">
+            <div class="filter-group">
+                <label>Price</label>
+                <select id="priceFilter" class="filter-select">
+                    <option value="">Any price</option>
+                    <option value="0-200000">Under $200,000</option>
+                    <option value="200000-300000">$200,000 - $300,000</option>
+                    <option value="300000-400000">$300,000 - $400,000</option>
+                    <option value="400000-500000">$400,000 - $500,000</option>
+                    <option value="500000+">$500,000+</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Bedrooms</label>
+                <select id="bedroomFilter" class="filter-select">
+                    <option value="">Any</option>
+                    <option value="1">1+</option>
+                    <option value="2">2+</option>
+                    <option value="3">3+</option>
+                    <option value="4">4+</option>
+                    <option value="5">5+</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Bathrooms</label>
+                <select id="bathroomFilter" class="filter-select">
+                    <option value="">Any</option>
+                    <option value="1">1+</option>
+                    <option value="1.5">1.5+</option>
+                    <option value="2">2+</option>
+                    <option value="2.5">2.5+</option>
+                    <option value="3">3+</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Property Type</label>
+                <select id="typeFilter" class="filter-select">
+                    <option value="">All types</option>
+                    <option value="Single Family">Single Family</option>
+                    <option value="Condo">Condo</option>
+                    <option value="Townhouse">Townhouse</option>
+                    <option value="Multi-Family">Multi-Family</option>
+                    <option value="Luxury">Luxury</option>
+                    <option value="Ranch">Ranch</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Status</label>
+                <select id="statusFilter" class="filter-select">
+                    <option value="">All statuses</option>
+                    <option value="On Market">On Market</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Sold">Sold</option>
+                </select>
+            </div>
+            <button id="clearFilters" class="btn-clear">Clear all</button>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-container">
+            <!-- Results Header -->
+            <div class="results-header">
+                <h3 id="resultsCount" class="results-count">Loading properties...</h3>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="grid">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <rect x="2" y="2" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="12" y="2" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="2" y="12" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="12" y="12" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </button>
+                    <button class="view-btn" data-view="list">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <rect x="2" y="3" width="16" height="2" rx="1" fill="currentColor"/>
+                            <rect x="2" y="8" width="16" height="2" rx="1" fill="currentColor"/>
+                            <rect x="2" y="13" width="16" height="2" rx="1" fill="currentColor"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Properties Grid -->
+            <div id="propertiesGrid" class="properties-grid">
+                <!-- Properties will be inserted here by JavaScript -->
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading properties...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <h3>No properties found</h3>
+                <p>Try adjusting your filters or search criteria</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Property Detail Modal -->
+    <div id="propertyModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <div id="modalBody" class="modal-body">
+                <!-- Property details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content auth-modal">
+            <span class="modal-close" data-modal="loginModal">&times;</span>
+            <div class="auth-modal-body">
+                <h2>Sign In</h2>
+                <form id="loginForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="form-input" required>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">Sign In</button>
+                </form>
+                <p class="auth-switch">
+                    Don't have an account? <a href="#" id="switchToSignup">Sign up</a>
+                </p>
+                <div id="loginError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content auth-modal">
+            <span class="modal-close" data-modal="signupModal">&times;</span>
+            <div class="auth-modal-body">
+                <h2>Create Account</h2>
+                <form id="signupForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="accountType">I am a</label>
+                        <select id="accountType" class="form-input" required>
+                            <option value="">Select account type</option>
+                            <option value="buyer">Buyer</option>
+                            <option value="realtor">Realtor</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupName">Full Name</label>
+                        <input type="text" id="signupName" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail">Email</label>
+                        <input type="email" id="signupEmail" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPhone">Phone</label>
+                        <input type="tel" id="signupPhone" class="form-input" required>
+                    </div>
+                    <div id="realtorFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="licenseNumber">License Number</label>
+                            <input type="text" id="licenseNumber" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="commissionRate">Commission Rate (%)</label>
+                            <input type="number" id="commissionRate" class="form-input" min="0" max="100" step="0.01">
+                        </div>
+                    </div>
+                    <div id="buyerFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="budgetMin">Budget Min ($)</label>
+                            <input type="number" id="budgetMin" class="form-input" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="budgetMax">Budget Max ($)</label>
+                            <input type="number" id="budgetMax" class="form-input" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="preferredBedrooms">Preferred Bedrooms</label>
+                            <input type="number" id="preferredBedrooms" class="form-input" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="preferredBathrooms">Preferred Bathrooms</label>
+                            <input type="number" id="preferredBathrooms" class="form-input" min="0" step="0.5">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" id="signupPassword" class="form-input" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" class="form-input" required>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">Create Account</button>
+                </form>
+                <p class="auth-switch">
+                    Already have an account? <a href="#" id="switchToLogin">Sign in</a>
+                </p>
+                <div id="signupError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Content Sections (hidden by default) -->
+    <div id="rentPage" class="page-section" style="display: none;">
+        <div class="content-container">
+            <h2>Rent Properties</h2>
+            <p>Rental listings coming soon...</p>
+        </div>
+    </div>
+
+    <div id="sellPage" class="page-section" style="display: none;">
+        <div class="content-container">
+            <h2>Sell Your Property</h2>
+            <div id="sellFormContainer">
+                <p>List your property for sale. <span id="sellLoginPrompt">Please <a href="#" id="sellLoginLink">sign in</a> to continue.</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="settingsPage" class="page-section" style="display: none;">
+        <div class="content-container">
+            <h2>Account Settings</h2>
+            <div id="settingsFormContainer" class="settings-container">
+                <!-- Settings form will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="agentFinderPage" class="page-section" style="display: none;">
+        <div class="content-container">
+            <h2>Find an Agent</h2>
+            <div id="agentsList" class="agents-grid">
+                <!-- Agents will be listed here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
