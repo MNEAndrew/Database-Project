@@ -6,7 +6,10 @@ const API_BASE_URL = 'http://localhost:3000/api';
 // Helper function for API calls
 async function apiCall(endpoint, options = {}) {
     try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const url = `${API_BASE_URL}${endpoint}`;
+        console.log('API Call:', url, options.method || 'GET');
+        
+        const response = await fetch(url, {
             headers: {
                 'Content-Type': 'application/json',
                 ...options.headers
@@ -15,13 +18,23 @@ async function apiCall(endpoint, options = {}) {
         });
         
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || error.message || 'API request failed');
+            let errorMessage = 'API request failed';
+            try {
+                const error = await response.json();
+                errorMessage = error.error || error.message || errorMessage;
+            } catch (e) {
+                errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
         }
         
         return await response.json();
     } catch (error) {
         console.error('API Error:', error);
+        // If it's a network error (failed to fetch), provide a more helpful message
+        if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+            throw new Error('Cannot connect to server. Make sure the server is running on http://localhost:3000');
+        }
         throw error;
     }
 }
@@ -231,15 +244,26 @@ window.API = {
 async function checkAPIConnection() {
     try {
         const response = await fetch(`${API_BASE_URL}/health`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
         const data = await response.json();
         console.log('✅ API connected:', data);
         return true;
     } catch (error) {
-        console.warn('⚠️ API not available, using localStorage fallback:', error);
+        console.error('❌ API not available:', error.message);
+        console.error('   Make sure the server is running on http://localhost:3000');
+        console.error('   Run: npm start');
         return false;
     }
 }
 
 // Initialize API check on load
-checkAPIConnection();
+window.addEventListener('DOMContentLoaded', () => {
+    checkAPIConnection().then(connected => {
+        if (!connected) {
+            console.warn('⚠️ API not available, some features may not work');
+        }
+    });
+});
 

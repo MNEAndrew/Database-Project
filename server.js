@@ -46,6 +46,10 @@ async function initializePool() {
 
 // Helper function to execute queries
 async function executeQuery(sql, binds = [], options = {}) {
+    if (!pool) {
+        throw new Error('Database connection pool not initialized');
+    }
+    
     let connection;
     try {
         connection = await pool.getConnection();
@@ -57,6 +61,8 @@ async function executeQuery(sql, binds = [], options = {}) {
         return result.rows || result;
     } catch (err) {
         console.error('Database query error:', err);
+        console.error('SQL:', sql);
+        console.error('Binds:', binds);
         throw err;
     } finally {
         if (connection) {
@@ -101,36 +107,63 @@ app.get('/api/users', async (req, res) => {
 // Create user (sign up)
 app.post('/api/users/signup', async (req, res) => {
     try {
+        console.log('Signup request received:', req.body);
         const { accountType, name, email, phone, password, ...otherData } = req.body;
+        
+        if (!accountType || !name || !email || !phone) {
+            return res.status(400).json({ success: false, error: 'Missing required fields' });
+        }
         
         if (accountType === 'realtor') {
             const agentId = 'A' + Date.now().toString().slice(-9);
-            const sql = `INSERT INTO agent (agent_id, name, phone, email, license_number, commission_rate, hire_date)
-                         VALUES (:agent_id, :name, :phone, :email, :license_number, :commission_rate, SYSDATE)`;
-            await executeQuery(sql, {
+            const sql = `INSERT INTO agent (agent_id, name, phone, email, license_number, commission_rate, hire_date, account_type)
+                         VALUES (:agent_id, :name, :phone, :email, :license_number, :commission_rate, SYSDATE, 'realtor')`;
+            
+            // Generate unique license number if not provided
+            const licenseNumber = otherData.licenseNumber && otherData.licenseNumber.trim() 
+                ? otherData.licenseNumber.trim() 
+                : 'LIC-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
+            
+            const binds = {
                 agent_id: agentId,
-                name: name,
-                phone: phone,
-                email: email,
-                license_number: otherData.licenseNumber || 'LIC-' + Date.now(),
+                name: name.trim(),
+                phone: phone.trim() || null,
+                email: email.trim().toLowerCase(),
+                license_number: licenseNumber,
                 commission_rate: parseFloat(otherData.commissionRate) || 0
-            });
+            };
+            
+            console.log('Inserting agent with ID:', agentId);
+            console.log('Agent data:', binds);
+            
+            await executeQuery(sql, binds);
+            
+            // Verify the agent was inserted
+            const verifySql = 'SELECT agent_id, name, email FROM agent WHERE agent_id = :agent_id';
+            const verifyResult = await executeQuery(verifySql, { agent_id: agentId });
+            console.log('Verification query result:', verifyResult);
+            
+            if (verifyResult.length === 0) {
+                throw new Error('Agent was not inserted successfully');
+            }
+            
+            console.log('Agent successfully created:', agentId);
             res.json({ success: true, user: { id: agentId, accountType: 'realtor', name, email, phone } });
         } else {
             const buyerId = 'B' + Date.now().toString().slice(-9);
             const sql = `INSERT INTO buyer (buyer_id, name, phone, email, address, city, state, zip_code, 
-                         budget_min, budget_max, preferred_bedrooms, preferred_bathrooms, registration_date)
+                         budget_min, budget_max, preferred_bedrooms, preferred_bathrooms, registration_date, account_type)
                          VALUES (:buyer_id, :name, :phone, :email, :address, :city, :state, :zip_code,
-                         :budget_min, :budget_max, :preferred_bedrooms, :preferred_bathrooms, SYSDATE)`;
+                         :budget_min, :budget_max, :preferred_bedrooms, :preferred_bathrooms, SYSDATE, 'buyer')`;
             await executeQuery(sql, {
                 buyer_id: buyerId,
-                name: name,
-                phone: phone,
-                email: email,
-                address: otherData.address || '',
-                city: otherData.city || '',
-                state: otherData.state || '',
-                zip_code: otherData.zipCode || '',
+                name: name.trim(),
+                phone: phone.trim() || null,
+                email: email.trim().toLowerCase(),
+                address: (otherData.address || '').trim(),
+                city: (otherData.city || '').trim(),
+                state: (otherData.state || '').trim(),
+                zip_code: (otherData.zipCode || '').trim(),
                 budget_min: parseFloat(otherData.budgetMin) || 0,
                 budget_max: parseFloat(otherData.budgetMax) || 0,
                 preferred_bedrooms: parseInt(otherData.preferredBedrooms) || 0,
@@ -139,6 +172,9 @@ app.post('/api/users/signup', async (req, res) => {
             res.json({ success: true, user: { id: buyerId, accountType: 'buyer', name, email, phone } });
         }
     } catch (err) {
+        console.error('Signup error:', err);
+        console.error('Error details:', err.message);
+        console.error('Error stack:', err.stack);
         res.status(500).json({ success: false, error: err.message });
     }
 });
@@ -147,25 +183,59 @@ app.post('/api/users/signup', async (req, res) => {
 app.post('/api/users/signin', async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log('Sign-in attempt for email:', email);
         
-        // Check buyers
-        let sql = 'SELECT buyer_id as id, name, phone, email, account_type FROM buyer WHERE email = :email';
-        let result = await executeQuery(sql, { email });
-        
-        if (result.length > 0) {
-            return res.json({ success: true, user: { ...result[0], accountType: 'buyer' } });
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email is required' });
         }
         
-        // Check agents
-        sql = 'SELECT agent_id as id, name, phone, email, account_type FROM agent WHERE email = :email';
-        result = await executeQuery(sql, { email });
+        // Check buyers - use UPPER for case-insensitive comparison
+        const normalizedEmail = email.trim().toLowerCase();
+        let sql = 'SELECT buyer_id as id, name, phone, email, account_type FROM buyer WHERE UPPER(email) = UPPER(:email)';
+        let result = await executeQuery(sql, { email: normalizedEmail });
+        
+        console.log('Buyer query result:', result.length, 'records found');
         
         if (result.length > 0) {
-            return res.json({ success: true, user: { ...result[0], accountType: 'realtor' } });
+            const user = result[0];
+            // Note: We're not checking password since we don't store it in the database
+            // In a real application, you would hash and compare passwords here
+            const userData = {
+                id: user.ID || user.id || user.BUYER_ID || user.buyer_id,
+                name: user.NAME || user.name,
+                phone: user.PHONE || user.phone,
+                email: user.EMAIL || user.email,
+                accountType: user.ACCOUNT_TYPE || user.account_type || 'buyer'
+            };
+            console.log('Sign-in successful for buyer:', userData.email);
+            return res.json({ success: true, user: userData });
         }
         
+        // Check agents - use UPPER for case-insensitive comparison
+        sql = 'SELECT agent_id as id, name, phone, email, account_type FROM agent WHERE UPPER(email) = UPPER(:email)';
+        result = await executeQuery(sql, { email: normalizedEmail });
+        
+        console.log('Agent query result:', result.length, 'records found');
+        
+        if (result.length > 0) {
+            const user = result[0];
+            // Note: We're not checking password since we don't store it in the database
+            // In a real application, you would hash and compare passwords here
+            const userData = {
+                id: user.ID || user.id || user.AGENT_ID || user.agent_id,
+                name: user.NAME || user.name,
+                phone: user.PHONE || user.phone,
+                email: user.EMAIL || user.email,
+                accountType: user.ACCOUNT_TYPE || user.account_type || 'realtor'
+            };
+            console.log('Sign-in successful for agent:', userData.email);
+            return res.json({ success: true, user: userData });
+        }
+        
+        console.log('Sign-in failed: No user found with email:', email);
         res.status(401).json({ success: false, message: 'Invalid email or password' });
     } catch (err) {
+        console.error('Sign-in error:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
@@ -435,8 +505,10 @@ app.get('/api/agents', async (req, res) => {
     try {
         const sql = 'SELECT * FROM agent ORDER BY name';
         const agents = await executeQuery(sql);
+        console.log(`Agent finder: Found ${agents.length} agents`);
         res.json(agents);
     } catch (err) {
+        console.error('Error fetching agents:', err);
         res.status(500).json({ error: err.message });
     }
 });

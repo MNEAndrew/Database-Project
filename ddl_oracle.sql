@@ -74,7 +74,8 @@ CREATE TABLE agent (
     email VARCHAR2(100),
     license_number VARCHAR2(20) NOT NULL UNIQUE,
     commission_rate NUMBER(5,2) CHECK (commission_rate >= 0 AND commission_rate <= 100),
-    hire_date DATE
+    hire_date DATE,
+    account_type VARCHAR2(10) DEFAULT 'realtor' CHECK (account_type IN ('realtor', 'buyer'))
 );
 
 -- Buyers table: People looking to purchase properties
@@ -92,6 +93,7 @@ CREATE TABLE buyer (
     preferred_bedrooms NUMBER(2,0) CHECK (preferred_bedrooms >= 0),
     preferred_bathrooms NUMBER(3,1) CHECK (preferred_bathrooms >= 0),
     registration_date DATE,
+    account_type VARCHAR2(10) DEFAULT 'buyer' CHECK (account_type IN ('realtor', 'buyer')),
     CONSTRAINT budget_check CHECK (budget_max >= budget_min)
 );
 
@@ -127,9 +129,9 @@ CREATE TABLE property (
     bathrooms NUMBER(3,1) CHECK (bathrooms >= 0),
     square_feet NUMBER(8,0) CHECK (square_feet > 0),
     lot_size NUMBER(10,2) CHECK (lot_size >= 0),
-    year_built NUMBER(4,0) CHECK (year_built > 1800 AND year_built <= EXTRACT(YEAR FROM SYSDATE)),
+    year_built NUMBER(4,0) CHECK (year_built > 1800),
     listing_price NUMBER(12,2) CHECK (listing_price > 0),
-    listing_type VARCHAR2(10) CHECK (listing_type IN ('Sale', 'Rent')) DEFAULT 'Sale',
+    listing_type VARCHAR2(10) DEFAULT 'Sale' CHECK (listing_type IN ('Sale', 'Rent')),
     status VARCHAR2(20) CHECK (status IN ('On Market', 'Pending', 'Sold', 'Off Market', 'Withdrawn')),
     listing_date DATE,
     description CLOB,
