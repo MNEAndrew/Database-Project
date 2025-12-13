@@ -172,16 +172,102 @@ app.post('/api/users/signin', async (req, res) => {
 
 // ==================== PROPERTY ROUTES ====================
 
-// Get all properties
+// Get all properties with filters
 app.get('/api/properties', async (req, res) => {
     try {
-        const sql = `SELECT p.*, pt.type_name as property_type, 
-                     a.name as agent_name, a.phone as agent_phone, a.email as agent_email
-                     FROM property p
-                     LEFT JOIN property_type pt ON p.property_type_id = pt.type_id
-                     LEFT JOIN agent a ON p.listing_agent_id = a.agent_id
-                     ORDER BY p.listing_date DESC`;
-        const properties = await executeQuery(sql);
+        // Extract filter parameters from query string
+        const {
+            search,
+            priceMin,
+            priceMax,
+            bedrooms,
+            bathrooms,
+            propertyType,
+            status,
+            city,
+            state,
+            zipCode
+        } = req.query;
+        
+        // Build dynamic SQL query with filters
+        let sql = `SELECT p.*, pt.type_name as property_type, 
+                   a.name as agent_name, a.phone as agent_phone, a.email as agent_email
+                   FROM property p
+                   LEFT JOIN property_type pt ON p.property_type_id = pt.type_id
+                   LEFT JOIN agent a ON p.listing_agent_id = a.agent_id
+                   WHERE 1=1`;
+        
+        const binds = {};
+        
+        // Search filter (address, city, state, zip, description)
+        if (search) {
+            sql += ` AND (UPPER(p.address) LIKE UPPER(:search) 
+                    OR UPPER(p.city) LIKE UPPER(:search) 
+                    OR UPPER(p.state) LIKE UPPER(:search) 
+                    OR UPPER(p.zip_code) LIKE UPPER(:search)
+                    OR UPPER(p.description) LIKE UPPER(:search))`;
+            binds.search = `%${search}%`;
+        }
+        
+        // Price filter
+        if (priceMin) {
+            sql += ` AND p.listing_price >= :priceMin`;
+            binds.priceMin = parseFloat(priceMin);
+        }
+        if (priceMax) {
+            sql += ` AND p.listing_price <= :priceMax`;
+            binds.priceMax = parseFloat(priceMax);
+        }
+        
+        // Bedrooms filter
+        if (bedrooms) {
+            sql += ` AND p.bedrooms >= :bedrooms`;
+            binds.bedrooms = parseInt(bedrooms);
+        }
+        
+        // Bathrooms filter
+        if (bathrooms) {
+            sql += ` AND p.bathrooms >= :bathrooms`;
+            binds.bathrooms = parseFloat(bathrooms);
+        }
+        
+        // Property type filter
+        if (propertyType) {
+            sql += ` AND pt.type_name = :propertyType`;
+            binds.propertyType = propertyType;
+        }
+        
+        // Status filter
+        if (status) {
+            sql += ` AND p.status = :status`;
+            binds.status = status;
+        }
+        
+        // City filter
+        if (city) {
+            sql += ` AND UPPER(p.city) = UPPER(:city)`;
+            binds.city = city;
+        }
+        
+        // State filter
+        if (state) {
+            sql += ` AND UPPER(p.state) = UPPER(:state)`;
+            binds.state = state;
+        }
+        
+        // ZIP code filter
+        if (zipCode) {
+            sql += ` AND p.zip_code = :zipCode`;
+            binds.zipCode = zipCode;
+        }
+        
+        // Order by listing date
+        sql += ` ORDER BY p.listing_date DESC`;
+        
+        console.log('Executing SQL:', sql);
+        console.log('With binds:', binds);
+        
+        const properties = await executeQuery(sql, binds);
         
         // Get features for each property
         for (let prop of properties) {
@@ -197,6 +283,7 @@ app.get('/api/properties', async (req, res) => {
         
         res.json(properties);
     } catch (err) {
+        console.error('Error fetching properties:', err);
         res.status(500).json({ error: err.message });
     }
 });

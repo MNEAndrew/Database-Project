@@ -535,8 +535,79 @@ function createPropertyCard(property) {
     return card;
 }
 
-// Filter properties
-function filterProperties() {
+// Filter properties - uses SQL queries if API available
+async function filterProperties() {
+    // Check if API is available
+    const apiAvailable = window.API && typeof window.API.getProperties === 'function';
+    
+    if (apiAvailable) {
+        // Use SQL-based filtering via API
+        try {
+            loadingState.style.display = 'block';
+            emptyState.style.display = 'none';
+            
+            // Build filter object from form inputs
+            const filters = {};
+            
+            // Search filter
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) {
+                filters.search = searchTerm;
+            }
+            
+            // Price filter
+            const priceValue = priceFilter.value;
+            if (priceValue) {
+                if (priceValue.includes('+')) {
+                    filters.priceMin = parseInt(priceValue.replace('+', ''));
+                } else {
+                    const [min, max] = priceValue.split('-').map(Number);
+                    filters.priceMin = min;
+                    filters.priceMax = max;
+                }
+            }
+            
+            // Bedroom filter
+            const bedroomValue = bedroomFilter.value;
+            if (bedroomValue) {
+                filters.bedrooms = bedroomValue;
+            }
+            
+            // Bathroom filter
+            const bathroomValue = bathroomFilter.value;
+            if (bathroomValue) {
+                filters.bathrooms = bathroomValue;
+            }
+            
+            // Type filter
+            const typeValue = typeFilter.value;
+            if (typeValue) {
+                filters.propertyType = typeValue;
+            }
+            
+            // Status filter
+            const statusValue = statusFilter.value;
+            if (statusValue) {
+                filters.status = statusValue;
+            }
+            
+            // Fetch filtered properties from Oracle database
+            const properties = await window.API.getProperties(filters);
+            filteredProperties = properties;
+            renderProperties();
+        } catch (error) {
+            console.error('Error fetching filtered properties:', error);
+            // Fall back to local filtering
+            filterPropertiesLocal();
+        }
+    } else {
+        // Fall back to local filtering if API not available
+        filterPropertiesLocal();
+    }
+}
+
+// Local filtering fallback (for when API is not available)
+function filterPropertiesLocal() {
     let filtered = [...propertiesData];
 
     // Search filter
@@ -1052,16 +1123,59 @@ function renderRentPage() {
         </div>
     `;
     
-    // For demo purposes, show properties under $200k as potential rentals
-    // In a real app, you'd have a property type or rent flag
-    const rentalProperties = propertiesData.filter(p => p.listing_price < 200000 && p.status === 'On Market');
-    
     const rentGrid = document.getElementById('rentPropertiesGrid');
     const rentEmpty = document.getElementById('rentEmptyState');
     
-    if (rentGrid && rentEmpty) {
-        rentGrid.innerHTML = '';
-        
+    if (!rentGrid || !rentEmpty) return;
+    
+    rentGrid.innerHTML = '';
+    loadingState.style.display = 'block';
+    
+    // Check if API is available
+    const apiAvailable = window.API && typeof window.API.getProperties === 'function';
+    
+    if (apiAvailable) {
+        try {
+            // Use SQL query to get rental properties (under $200k, On Market)
+            const rentalProperties = await window.API.getProperties({
+                priceMax: 200000,
+                status: 'On Market'
+            });
+            
+            loadingState.style.display = 'none';
+            
+            if (rentalProperties.length > 0) {
+                rentEmpty.style.display = 'none';
+                rentGrid.style.display = 'grid';
+                rentalProperties.forEach(property => {
+                    const card = createPropertyCard(property);
+                    rentGrid.appendChild(card);
+                });
+            } else {
+                rentGrid.style.display = 'none';
+                rentEmpty.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error fetching rental properties:', error);
+            loadingState.style.display = 'none';
+            // Fall back to local filtering
+            const rentalProperties = propertiesData.filter(p => p.listing_price < 200000 && p.status === 'On Market');
+            if (rentalProperties.length > 0) {
+                rentEmpty.style.display = 'none';
+                rentGrid.style.display = 'grid';
+                rentalProperties.forEach(property => {
+                    const card = createPropertyCard(property);
+                    rentGrid.appendChild(card);
+                });
+            } else {
+                rentGrid.style.display = 'none';
+                rentEmpty.style.display = 'block';
+            }
+        }
+    } else {
+        // Fall back to local filtering
+        loadingState.style.display = 'none';
+        const rentalProperties = propertiesData.filter(p => p.listing_price < 200000 && p.status === 'On Market');
         if (rentalProperties.length > 0) {
             rentEmpty.style.display = 'none';
             rentGrid.style.display = 'grid';
@@ -1512,13 +1626,34 @@ document.getElementById('signupForm')?.addEventListener('submit', (e) => {
 });
 
 // Initialize
-function init() {
+async function init() {
     updateUI();
     
-    // Simulate loading
-    setTimeout(() => {
-        renderProperties();
-    }, 500);
+    // Check if API is available and load properties from database
+    const apiAvailable = window.API && typeof window.API.getProperties === 'function';
+    
+    if (apiAvailable) {
+        try {
+            loadingState.style.display = 'block';
+            // Load all properties from Oracle database
+            const properties = await window.API.getProperties();
+            propertiesData.length = 0; // Clear local data
+            propertiesData.push(...properties); // Add database properties
+            filteredProperties = [...properties];
+            renderProperties();
+        } catch (error) {
+            console.error('Failed to load properties from database:', error);
+            // Fall back to local data
+            setTimeout(() => {
+                renderProperties();
+            }, 500);
+        }
+    } else {
+        // Use local data if API not available
+        setTimeout(() => {
+            renderProperties();
+        }, 500);
+    }
 }
 
 // Start the app

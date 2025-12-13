@@ -63,9 +63,26 @@ async function signIn(email, password) {
 
 // ==================== PROPERTY API ====================
 
-async function getProperties() {
+async function getProperties(filters = {}) {
     try {
-        const properties = await apiCall('/properties');
+        // Build query string from filters
+        const queryParams = new URLSearchParams();
+        
+        if (filters.search) queryParams.append('search', filters.search);
+        if (filters.priceMin) queryParams.append('priceMin', filters.priceMin);
+        if (filters.priceMax) queryParams.append('priceMax', filters.priceMax);
+        if (filters.bedrooms) queryParams.append('bedrooms', filters.bedrooms);
+        if (filters.bathrooms) queryParams.append('bathrooms', filters.bathrooms);
+        if (filters.propertyType) queryParams.append('propertyType', filters.propertyType);
+        if (filters.status) queryParams.append('status', filters.status);
+        if (filters.city) queryParams.append('city', filters.city);
+        if (filters.state) queryParams.append('state', filters.state);
+        if (filters.zipCode) queryParams.append('zipCode', filters.zipCode);
+        
+        const queryString = queryParams.toString();
+        const endpoint = queryString ? `/properties?${queryString}` : '/properties';
+        
+        const properties = await apiCall(endpoint);
         // Transform Oracle column names to camelCase
         return properties.map(prop => ({
             property_id: prop.PROPERTY_ID || prop.property_id,
