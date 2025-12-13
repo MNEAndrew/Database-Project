@@ -186,7 +186,8 @@ app.get('/api/properties', async (req, res) => {
             status,
             city,
             state,
-            zipCode
+            zipCode,
+            listingType
         } = req.query;
         
         // Build dynamic SQL query with filters
@@ -259,6 +260,12 @@ app.get('/api/properties', async (req, res) => {
         if (zipCode) {
             sql += ` AND p.zip_code = :zipCode`;
             binds.zipCode = zipCode;
+        }
+        
+        // Listing type filter (Sale or Rent)
+        if (listingType) {
+            sql += ` AND p.listing_type = :listingType`;
+            binds.listingType = listingType;
         }
         
         // Order by listing date
@@ -339,10 +346,10 @@ app.post('/api/properties', upload.single('image'), async (req, res) => {
         }
         
         const sql = `INSERT INTO property (property_id, address, city, state, zip_code, property_type_id,
-                     bedrooms, bathrooms, square_feet, lot_size, year_built, listing_price, status,
+                     bedrooms, bathrooms, square_feet, lot_size, year_built, listing_price, listing_type, status,
                      listing_date, description, seller_id, listing_agent_id)
                      VALUES (:property_id, :address, :city, :state, :zip_code, :property_type_id,
-                     :bedrooms, :bathrooms, :square_feet, :lot_size, :year_built, :listing_price, 'On Market',
+                     :bedrooms, :bathrooms, :square_feet, :lot_size, :year_built, :listing_price, :listing_type, 'On Market',
                      SYSDATE, :description, :seller_id, :listing_agent_id)`;
         
         await executeQuery(sql, {
@@ -358,6 +365,7 @@ app.post('/api/properties', upload.single('image'), async (req, res) => {
             lot_size: parseFloat(property.lot_size),
             year_built: parseInt(property.year_built),
             listing_price: parseFloat(property.listing_price),
+            listing_type: property.listing_type || 'Sale',
             description: property.description,
             seller_id: property.seller_id,
             listing_agent_id: property.listing_agent_id

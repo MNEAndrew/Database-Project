@@ -142,6 +142,7 @@ let propertiesData = [
         lot_size: 0.25,
         year_built: 1995,
         listing_price: 275000,
+        listing_type: 'Sale',
         status: 'On Market',
         listing_date: '2023-06-01',
         description: 'Beautiful single-family home with updated kitchen',
@@ -161,10 +162,11 @@ let propertiesData = [
         square_feet: 1200,
         lot_size: 0.10,
         year_built: 2010,
-        listing_price: 185000,
+        listing_price: 1500,
+        listing_type: 'Rent',
         status: 'On Market',
         listing_date: '2023-06-05',
-        description: 'Modern condo with great amenities',
+        description: 'Modern condo with great amenities - Available for rent',
         features: ['Balcony', 'Gym Access'],
         agent: { name: 'Michael Chen', phone: '555-0102', email: 'michael.c@realty.com' },
         image_url: null
@@ -182,6 +184,7 @@ let propertiesData = [
         lot_size: 0.35,
         year_built: 2005,
         listing_price: 325000,
+        listing_type: 'Sale',
         status: 'Pending',
         listing_date: '2023-05-20',
         description: 'Spacious family home with large yard',
@@ -202,6 +205,7 @@ let propertiesData = [
         lot_size: 0.50,
         year_built: 2018,
         listing_price: 450000,
+        listing_type: 'Sale',
         status: 'On Market',
         listing_date: '2023-06-10',
         description: 'Luxury home with premium finishes',
@@ -221,10 +225,11 @@ let propertiesData = [
         square_feet: 800,
         lot_size: 0.05,
         year_built: 2012,
-        listing_price: 125000,
+        listing_price: 950,
+        listing_type: 'Rent',
         status: 'On Market',
         listing_date: '2023-06-12',
-        description: 'Cozy studio condo perfect for first-time buyer',
+        description: 'Cozy studio condo perfect for renters - Available now',
         features: ['Balcony'],
         agent: { name: 'Jessica White', phone: '555-0105', email: 'jessica.w@realty.com' },
         image_url: null
@@ -241,10 +246,11 @@ let propertiesData = [
         square_feet: 2400,
         lot_size: 0.40,
         year_built: 2016,
-        listing_price: 380000,
+        listing_price: 2400,
+        listing_type: 'Rent',
         status: 'On Market',
         listing_date: '2023-06-08',
-        description: 'Stunning home with open floor plan',
+        description: 'Stunning home with open floor plan - Available for rent',
         features: ['Garage', 'Fireplace', 'Deck'],
         agent: { name: 'Christopher Brown', phone: '555-0106', email: 'chris.b@realty.com' },
         image_url: null
@@ -262,6 +268,7 @@ let propertiesData = [
         lot_size: 0.75,
         year_built: 2020,
         listing_price: 650000,
+        listing_type: 'Sale',
         status: 'On Market',
         listing_date: '2023-06-15',
         description: 'Luxury estate with pool and tennis court',
@@ -282,6 +289,7 @@ let propertiesData = [
         lot_size: 0.22,
         year_built: 2008,
         listing_price: 265000,
+        listing_type: 'Sale',
         status: 'On Market',
         listing_date: '2023-06-11',
         description: 'Well-maintained home in quiet neighborhood',
@@ -301,10 +309,11 @@ let propertiesData = [
         square_feet: 1100,
         lot_size: 0.08,
         year_built: 2013,
-        listing_price: 165000,
+        listing_price: 1200,
+        listing_type: 'Rent',
         status: 'On Market',
         listing_date: '2023-06-13',
-        description: 'Updated condo with modern features',
+        description: 'Updated condo with modern features - Perfect rental property',
         features: ['Balcony', 'Gym Access'],
         agent: { name: 'Sophia Anderson', phone: '555-0111', email: 'sophia.a@realty.com' },
         image_url: null
@@ -322,6 +331,7 @@ let propertiesData = [
         lot_size: 0.55,
         year_built: 2019,
         listing_price: 520000,
+        listing_type: 'Sale',
         status: 'Pending',
         listing_date: '2023-06-06',
         description: 'New construction with smart home features',
@@ -341,10 +351,11 @@ let propertiesData = [
         square_feet: 1700,
         lot_size: 0.18,
         year_built: 2016,
-        listing_price: 255000,
+        listing_price: 1800,
+        listing_type: 'Rent',
         status: 'On Market',
         listing_date: '2023-06-14',
-        description: 'End-unit townhouse with private patio',
+        description: 'End-unit townhouse with private patio - Available for rent',
         features: ['Garage', 'Patio'],
         agent: { name: 'Joseph Harris', phone: '555-0114', email: 'joseph.h@realty.com' },
         image_url: null
@@ -362,6 +373,7 @@ let propertiesData = [
         lot_size: 0.32,
         year_built: 2012,
         listing_price: 315000,
+        listing_type: 'Sale',
         status: 'On Market',
         listing_date: '2023-06-09',
         description: 'Family-friendly home with finished basement',
@@ -381,10 +393,11 @@ let propertiesData = [
         square_feet: 950,
         lot_size: 0.06,
         year_built: 2015,
-        listing_price: 145000,
+        listing_price: 850,
+        listing_type: 'Rent',
         status: 'On Market',
         listing_date: '2023-06-16',
-        description: 'Affordable starter condo',
+        description: 'Affordable starter condo - Great rental opportunity',
         features: ['Balcony'],
         agent: { name: 'William Lewis', phone: '555-0116', email: 'william.l@realty.com' },
         image_url: null
@@ -402,6 +415,7 @@ let propertiesData = [
         lot_size: 0.52,
         year_built: 2020,
         listing_price: 495000,
+        listing_type: 'Sale',
         status: 'On Market',
         listing_date: '2023-06-19',
         description: 'Premium home with high-end finishes',
@@ -422,6 +436,7 @@ let propertiesData = [
         lot_size: 1.00,
         year_built: 2021,
         listing_price: 850000,
+        listing_type: 'Sale',
         status: 'On Market',
         listing_date: '2023-06-26',
         description: 'Ultra-luxury estate with guest house',
@@ -1136,9 +1151,9 @@ async function renderRentPage() {
     
     if (apiAvailable) {
         try {
-            // Use SQL query to get rental properties (under $200k, On Market)
+            // Use SQL query to get rental properties (listing_type = 'Rent', On Market)
             const rentalProperties = await window.API.getProperties({
-                priceMax: 200000,
+                listingType: 'Rent',
                 status: 'On Market'
             });
             
@@ -1159,7 +1174,7 @@ async function renderRentPage() {
             console.error('Error fetching rental properties:', error);
             loadingState.style.display = 'none';
             // Fall back to local filtering
-            const rentalProperties = propertiesData.filter(p => p.listing_price < 200000 && p.status === 'On Market');
+            const rentalProperties = propertiesData.filter(p => p.listing_type === 'Rent' && p.status === 'On Market');
             if (rentalProperties.length > 0) {
                 rentEmpty.style.display = 'none';
                 rentGrid.style.display = 'grid';
@@ -1175,7 +1190,7 @@ async function renderRentPage() {
     } else {
         // Fall back to local filtering
         loadingState.style.display = 'none';
-        const rentalProperties = propertiesData.filter(p => p.listing_price < 200000 && p.status === 'On Market');
+        const rentalProperties = propertiesData.filter(p => p.listing_type === 'Rent' && p.status === 'On Market');
         if (rentalProperties.length > 0) {
             rentEmpty.style.display = 'none';
             rentGrid.style.display = 'grid';
@@ -1247,6 +1262,13 @@ function renderSellPage() {
                     </div>
                 </div>
                 <div class="form-row">
+                    <div class="form-group">
+                        <label for="propertyListingType">Listing Type</label>
+                        <select id="propertyListingType" class="form-input" required>
+                            <option value="Sale">For Sale</option>
+                            <option value="Rent">For Rent</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label for="propertyType">Property Type</label>
                         <select id="propertyType" class="form-input" required>
@@ -1399,6 +1421,7 @@ function renderSellPage() {
             lot_size: parseFloat(document.getElementById('propertyLotSize').value) || 0.25,
             year_built: new Date().getFullYear(),
             listing_price: parseFloat(document.getElementById('propertyPrice').value),
+            listing_type: document.getElementById('propertyListingType').value, // Sale or Rent
             status: 'On Market',
             listing_date: new Date().toISOString().split('T')[0],
             description: document.getElementById('propertyDescription').value,

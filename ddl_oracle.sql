@@ -129,6 +129,7 @@ CREATE TABLE property (
     lot_size NUMBER(10,2) CHECK (lot_size >= 0),
     year_built NUMBER(4,0) CHECK (year_built > 1800 AND year_built <= EXTRACT(YEAR FROM SYSDATE)),
     listing_price NUMBER(12,2) CHECK (listing_price > 0),
+    listing_type VARCHAR2(10) CHECK (listing_type IN ('Sale', 'Rent')) DEFAULT 'Sale',
     status VARCHAR2(20) CHECK (status IN ('On Market', 'Pending', 'Sold', 'Off Market', 'Withdrawn')),
     listing_date DATE,
     description CLOB,

@@ -78,6 +78,7 @@ async function getProperties(filters = {}) {
         if (filters.city) queryParams.append('city', filters.city);
         if (filters.state) queryParams.append('state', filters.state);
         if (filters.zipCode) queryParams.append('zipCode', filters.zipCode);
+        if (filters.listingType) queryParams.append('listingType', filters.listingType);
         
         const queryString = queryParams.toString();
         const endpoint = queryString ? `/properties?${queryString}` : '/properties';
@@ -97,6 +98,7 @@ async function getProperties(filters = {}) {
             lot_size: prop.LOT_SIZE || prop.lot_size,
             year_built: prop.YEAR_BUILT || prop.year_built,
             listing_price: prop.LISTING_PRICE || prop.listing_price,
+            listing_type: prop.LISTING_TYPE || prop.listing_type || 'Sale',
             status: prop.STATUS || prop.status,
             listing_date: prop.LISTING_DATE || prop.listing_date,
             description: prop.DESCRIPTION || prop.description,
