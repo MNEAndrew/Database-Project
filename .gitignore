@@ -17,8 +17,9 @@ npm-debug.log*
 # Environment variables
 .env
 .env.local
+.env.production
 
-# Node modules (if you add any in the future)
+# Node modules
 node_modules/
 
 # Build files
@@ -29,3 +30,7 @@ build/
 *.tmp
 *.temp
 
+# Oracle wallet files
+*.pem
+*.key
+wallet/
