@@ -170,6 +170,49 @@ app.post('/api/users/signin', async (req, res) => {
     }
 });
 
+// Update user
+app.put('/api/users/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const updateData = req.body;
+        
+        // Determine if agent or buyer
+        if (userId.startsWith('A')) {
+            // Update agent
+            const sql = `UPDATE agent SET name = :name, phone = :phone, email = :email
+                         WHERE agent_id = :agent_id`;
+            await executeQuery(sql, {
+                agent_id: userId,
+                name: updateData.name,
+                phone: updateData.phone,
+                email: updateData.email
+            });
+            const result = await executeQuery('SELECT agent_id as id, name, phone, email FROM agent WHERE agent_id = :agent_id', { agent_id: userId });
+            res.json({ success: true, user: { ...result[0], accountType: 'realtor' } });
+        } else {
+            // Update buyer
+            const sql = `UPDATE buyer SET name = :name, phone = :phone, email = :email,
+                         budget_min = :budget_min, budget_max = :budget_max,
+                         preferred_bedrooms = :preferred_bedrooms, preferred_bathrooms = :preferred_bathrooms
+                         WHERE buyer_id = :buyer_id`;
+            await executeQuery(sql, {
+                buyer_id: userId,
+                name: updateData.name,
+                phone: updateData.phone,
+                email: updateData.email,
+                budget_min: updateData.budgetMin || 0,
+                budget_max: updateData.budgetMax || 0,
+                preferred_bedrooms: updateData.preferredBedrooms || 0,
+                preferred_bathrooms: updateData.preferredBathrooms || 0
+            });
+            const result = await executeQuery('SELECT buyer_id as id, name, phone, email FROM buyer WHERE buyer_id = :buyer_id', { buyer_id: userId });
+            res.json({ success: true, user: { ...result[0], accountType: 'buyer' } });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // ==================== PROPERTY ROUTES ====================
 
 // Get all properties with filters

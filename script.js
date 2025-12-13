@@ -28,23 +28,35 @@ function generateId(prefix) {
     return prefix + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 5).toUpperCase();
 }
 
-// Authentication Functions
-function signUp(userData) {
-    const users = getUsers();
+// Authentication Functions - Use API/Database
+async function signUp(userData) {
+    // Check if API is available
+    if (window.API && typeof window.API.signUp === 'function') {
+        try {
+            const result = await window.API.signUp(userData);
+            if (result.success) {
+                setCurrentUser(result.user);
+            }
+            return result;
+        } catch (error) {
+            console.error('Sign up error:', error);
+            return { success: false, message: 'Failed to create account. Please try again.' };
+        }
+    }
     
-    // Check if email already exists
+    // Fallback to localStorage only if API unavailable
+    const users = getUsers();
     if (users.find(u => u.email === userData.email)) {
         return { success: false, message: 'Email already registered' };
     }
     
-    // Create user object
     const newUser = {
         id: userData.accountType === 'realtor' ? generateId('A') : generateId('B'),
         accountType: userData.accountType,
         name: userData.name,
         email: userData.email,
         phone: userData.phone,
-        password: userData.password, // In production, this should be hashed
+        password: userData.password,
         createdAt: new Date().toISOString(),
         ...(userData.accountType === 'realtor' ? {
             licenseNumber: userData.licenseNumber || '',
@@ -59,16 +71,31 @@ function signUp(userData) {
     
     users.push(newUser);
     saveUsers(users);
+    setCurrentUser(newUser);
     
     return { success: true, user: newUser };
 }
 
-function signIn(email, password) {
+async function signIn(email, password) {
+    // Check if API is available
+    if (window.API && typeof window.API.signIn === 'function') {
+        try {
+            const result = await window.API.signIn(email, password);
+            if (result.success) {
+                setCurrentUser(result.user);
+            }
+            return result;
+        } catch (error) {
+            console.error('Sign in error:', error);
+            return { success: false, message: 'Failed to sign in. Please try again.' };
+        }
+    }
+    
+    // Fallback to localStorage only if API unavailable
     const users = getUsers();
     const user = users.find(u => u.email === email && u.password === password);
     
     if (user) {
-        // Remove password before storing
         const { password: _, ...userWithoutPassword } = user;
         setCurrentUser(userWithoutPassword);
         return { success: true, user: userWithoutPassword };
@@ -1069,51 +1096,83 @@ function renderSettingsPage() {
             });
         }
         
-        // Update user data
-        const users = getUsers();
-        const userIndex = users.findIndex(u => u.id === user.id);
-        
-        if (userIndex === -1) {
-            errorDiv.textContent = 'User not found';
-            errorDiv.classList.add('show');
-            return;
-        }
-        
-        // Update user information
-        users[userIndex].name = document.getElementById('settingsName').value;
-        users[userIndex].email = document.getElementById('settingsEmail').value;
-        users[userIndex].phone = document.getElementById('settingsPhone').value;
-        users[userIndex].profilePicture = profilePictureData;
-        
-        if (newPassword) {
-            users[userIndex].password = newPassword;
-        }
-        
-        if (isRealtor) {
-            users[userIndex].licenseNumber = document.getElementById('settingsLicense').value;
-            users[userIndex].commissionRate = parseFloat(document.getElementById('settingsCommission').value) || 0;
+        // Update user data - use API if available
+        if (window.API && typeof window.API.updateUser === 'function') {
+            try {
+                const updateData = {
+                    name: document.getElementById('settingsName').value,
+                    email: document.getElementById('settingsEmail').value,
+                    phone: document.getElementById('settingsPhone').value,
+                    profilePicture: profilePictureData
+                };
+                if (newPassword) {
+                    updateData.password = newPassword;
+                }
+                if (isRealtor) {
+                    updateData.licenseNumber = document.getElementById('settingsLicense').value;
+                    updateData.commissionRate = parseFloat(document.getElementById('settingsCommission').value) || 0;
+                } else {
+                    updateData.budgetMin = parseFloat(document.getElementById('settingsBudgetMin').value) || 0;
+                    updateData.budgetMax = parseFloat(document.getElementById('settingsBudgetMax').value) || 0;
+                    updateData.preferredBedrooms = parseInt(document.getElementById('settingsBedrooms').value) || 0;
+                    updateData.preferredBathrooms = parseFloat(document.getElementById('settingsBathrooms').value) || 0;
+                }
+                
+                const result = await window.API.updateUser(user.id, updateData);
+                if (result.success) {
+                    setCurrentUser(result.user);
+                    updateUI();
+                    if (profilePictureData) {
+                        profilePicturePreview.innerHTML = `<img src="${profilePictureData}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    }
+                    successDiv.textContent = 'Settings updated successfully in database!';
+                    successDiv.classList.add('show');
+                    errorDiv.classList.remove('show');
+                } else {
+                    throw new Error(result.error || 'Failed to update user');
+                }
+            } catch (error) {
+                console.error('Error updating user:', error);
+                errorDiv.textContent = 'Failed to update settings. ' + error.message;
+                errorDiv.classList.add('show');
+                return;
+            }
         } else {
-            users[userIndex].budgetMin = parseFloat(document.getElementById('settingsBudgetMin').value) || 0;
-            users[userIndex].budgetMax = parseFloat(document.getElementById('settingsBudgetMax').value) || 0;
-            users[userIndex].preferredBedrooms = parseInt(document.getElementById('settingsBedrooms').value) || 0;
-            users[userIndex].preferredBathrooms = parseFloat(document.getElementById('settingsBathrooms').value) || 0;
+            // Fallback to localStorage
+            const users = getUsers();
+            const userIndex = users.findIndex(u => u.id === user.id);
+            if (userIndex === -1) {
+                errorDiv.textContent = 'User not found';
+                errorDiv.classList.add('show');
+                return;
+            }
+            users[userIndex].name = document.getElementById('settingsName').value;
+            users[userIndex].email = document.getElementById('settingsEmail').value;
+            users[userIndex].phone = document.getElementById('settingsPhone').value;
+            users[userIndex].profilePicture = profilePictureData;
+            if (newPassword) {
+                users[userIndex].password = newPassword;
+            }
+            if (isRealtor) {
+                users[userIndex].licenseNumber = document.getElementById('settingsLicense').value;
+                users[userIndex].commissionRate = parseFloat(document.getElementById('settingsCommission').value) || 0;
+            } else {
+                users[userIndex].budgetMin = parseFloat(document.getElementById('settingsBudgetMin').value) || 0;
+                users[userIndex].budgetMax = parseFloat(document.getElementById('settingsBudgetMax').value) || 0;
+                users[userIndex].preferredBedrooms = parseInt(document.getElementById('settingsBedrooms').value) || 0;
+                users[userIndex].preferredBathrooms = parseFloat(document.getElementById('settingsBathrooms').value) || 0;
+            }
+            saveUsers(users);
+            const { password: _, ...updatedUser } = users[userIndex];
+            setCurrentUser(updatedUser);
+            updateUI();
+            if (profilePictureData) {
+                profilePicturePreview.innerHTML = `<img src="${profilePictureData}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            }
+            successDiv.textContent = 'Settings updated successfully!';
+            successDiv.classList.add('show');
+            errorDiv.classList.remove('show');
         }
-        
-        saveUsers(users);
-        
-        // Update current user
-        const { password: _, ...updatedUser } = users[userIndex];
-        setCurrentUser(updatedUser);
-        updateUI();
-        
-        // Update profile picture preview if still on settings page
-        if (profilePictureData) {
-            profilePicturePreview.innerHTML = `<img src="${profilePictureData}" style="width: 100%; height: 100%; object-fit: cover;">`;
-        }
-        
-        successDiv.textContent = 'Settings updated successfully!';
-        successDiv.classList.add('show');
-        errorDiv.classList.remove('show');
         
         // Clear password fields
         document.getElementById('settingsPassword').value = '';
@@ -1461,11 +1520,35 @@ function renderSellPage() {
         selectedFeatures = [];
         renderFeatures();
         
-        // Add to properties (in real app, this would go to database)
-        propertiesData.push(newProperty);
-        filterProperties().catch(err => console.error('Error filtering:', err));
-        
-        document.getElementById('listPropertySuccess').textContent = 'Property listed successfully!';
+        // Save to database via API
+        if (window.API && typeof window.API.createProperty === 'function') {
+            try {
+                const imageFile = document.getElementById('propertyImageFile').files[0];
+                const result = await window.API.createProperty(newProperty, imageFile);
+                if (result.success) {
+                    document.getElementById('listPropertySuccess').textContent = 'Property listed successfully in database!';
+                    // Reload properties from database
+                    if (window.API && typeof window.API.getProperties === 'function') {
+                        const properties = await window.API.getProperties();
+                        propertiesData = properties;
+                        filteredProperties = [...properties];
+                        renderProperties();
+                    }
+                } else {
+                    throw new Error(result.error || 'Failed to create property');
+                }
+            } catch (error) {
+                console.error('Error creating property:', error);
+                document.getElementById('listPropertyError').textContent = 'Failed to save property. ' + error.message;
+                document.getElementById('listPropertyError').classList.add('show');
+                return;
+            }
+        } else {
+            // Fallback to local storage
+            propertiesData.push(newProperty);
+            filterProperties().catch(err => console.error('Error filtering:', err));
+            document.getElementById('listPropertySuccess').textContent = 'Property listed successfully!';
+        }
         document.getElementById('listPropertySuccess').classList.add('show');
         document.getElementById('listPropertyForm').reset();
         propertyImagePreview.style.display = 'none';
@@ -1610,7 +1693,7 @@ document.getElementById('loginForm')?.addEventListener('submit', (e) => {
     const password = document.getElementById('loginPassword').value;
     const errorDiv = document.getElementById('loginError');
     
-    const result = signIn(email, password);
+    const result = await signIn(email, password);
     
     if (result.success) {
         errorDiv.classList.remove('show');
@@ -1657,7 +1740,7 @@ document.getElementById('signupForm')?.addEventListener('submit', (e) => {
         preferredBathrooms: document.getElementById('preferredBathrooms')?.value || ''
     };
     
-    const result = signUp(userData);
+    const result = await signUp(userData);
     
     if (result.success) {
         errorDiv.classList.remove('show');

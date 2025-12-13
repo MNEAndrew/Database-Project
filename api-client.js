@@ -61,6 +61,18 @@ async function signIn(email, password) {
     }
 }
 
+async function updateUser(userId, updateData) {
+    try {
+        const result = await apiCall(`/users/${userId}`, {
+            method: 'PUT',
+            body: JSON.stringify(updateData)
+        });
+        return result;
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+}
+
 // ==================== PROPERTY API ====================
 
 async function getProperties(filters = {}) {
@@ -208,6 +220,7 @@ window.API = {
     getUsers,
     signUp,
     signIn,
+    updateUser,
     getProperties,
     getProperty,
     createProperty,
