@@ -268,16 +268,23 @@ app.get('/api/properties', async (req, res) => {
         console.log('With binds:', binds);
         
         const properties = await executeQuery(sql, binds);
+        console.log(`Found ${properties.length} properties`);
         
         // Get features for each property
         for (let prop of properties) {
-            const featuresSql = 'SELECT feature_name FROM property_feature WHERE property_id = :property_id';
-            const features = await executeQuery(featuresSql, { property_id: prop.PROPERTY_ID });
-            prop.features = features.map(f => f.FEATURE_NAME);
+            try {
+                const featuresSql = 'SELECT feature_name FROM property_feature WHERE property_id = :property_id';
+                const features = await executeQuery(featuresSql, { property_id: prop.PROPERTY_ID });
+                prop.features = features.map(f => f.FEATURE_NAME || f.feature_name);
+            } catch (err) {
+                console.error('Error fetching features for property:', prop.PROPERTY_ID, err);
+                prop.features = [];
+            }
+            
             prop.agent = {
-                name: prop.AGENT_NAME,
-                phone: prop.AGENT_PHONE,
-                email: prop.AGENT_EMAIL
+                name: prop.AGENT_NAME || prop.agent_name,
+                phone: prop.AGENT_PHONE || prop.agent_phone,
+                email: prop.AGENT_EMAIL || prop.agent_email
             };
         }
         

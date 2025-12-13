@@ -126,9 +126,9 @@ const agentsData = [
 ];
 
 // ==================== PROPERTY DATA ====================
-// Property Data (This would normally come from an API)
+// Property Data (Sample data - used as fallback if database is empty)
 // Sample data based on the database structure
-const propertiesData = [
+let propertiesData = [
     {
         property_id: 'P001',
         address: '123 Oak Street',
@@ -1630,6 +1630,9 @@ document.getElementById('signupForm')?.addEventListener('submit', (e) => {
 async function init() {
     updateUI();
     
+    // Store original sample data as backup (deep copy)
+    const originalSampleData = JSON.parse(JSON.stringify(propertiesData));
+    
     // Check if API is available and load properties from database
     const apiAvailable = window.API && typeof window.API.getProperties === 'function';
     
@@ -1638,19 +1641,35 @@ async function init() {
             loadingState.style.display = 'block';
             // Load all properties from Oracle database
             const properties = await window.API.getProperties();
-            propertiesData.length = 0; // Clear local data
-            propertiesData.push(...properties); // Add database properties
-            filteredProperties = [...properties];
-            renderProperties();
+            console.log('Properties loaded from API:', properties.length);
+            
+            if (properties && properties.length > 0) {
+                // Database has properties - use them
+                propertiesData = [...properties];
+                filteredProperties = [...properties];
+                renderProperties();
+            } else {
+                // Database is empty - use local sample data
+                console.log('Database is empty, using local sample data');
+                propertiesData = originalSampleData;
+                filteredProperties = [...originalSampleData];
+                renderProperties();
+            }
         } catch (error) {
             console.error('Failed to load properties from database:', error);
             // Fall back to local data
+            console.log('Falling back to local sample data');
+            propertiesData = originalSampleData;
+            filteredProperties = [...originalSampleData];
             setTimeout(() => {
                 renderProperties();
             }, 500);
         }
     } else {
         // Use local data if API not available
+        console.log('API not available, using local sample data');
+        propertiesData = originalSampleData;
+        filteredProperties = [...originalSampleData];
         setTimeout(() => {
             renderProperties();
         }, 500);
