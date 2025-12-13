@@ -736,15 +736,25 @@ function showPage(page) {
         buyPage.style.display = 'block';
         searchSection.style.display = 'block';
         filtersSection.style.display = 'block';
+    } else if (page === 'rent') {
+        rentPage.style.display = 'block';
+    } else if (page === 'sell') {
+        sellPage.style.display = 'block';
     } else if (page) {
-        page.style.display = 'block';
+        // Handle page element directly
+        if (typeof page === 'object' && page !== null) {
+            page.style.display = 'block';
+        }
     }
     
     // Update nav links
     navLinks.forEach(link => {
         link.classList.remove('active');
-        if (link.textContent.trim().toLowerCase() === page || 
-            (page === 'buy' && link.textContent.trim() === 'Buy')) {
+        const linkText = link.textContent.trim().toLowerCase();
+        if ((page === 'buy' && linkText === 'buy') ||
+            (page === 'rent' && linkText === 'rent') ||
+            (page === 'sell' && linkText === 'sell') ||
+            (page === agentFinderPage && linkText === 'agent finder')) {
             link.classList.add('active');
         }
     });
@@ -1013,14 +1023,78 @@ function renderSettingsPage() {
     });
 }
 
+// ==================== RENT PAGE ====================
+function renderRentPage() {
+    const rentPageContent = document.getElementById('rentPage');
+    if (!rentPageContent) return;
+    
+    const rentContainer = rentPageContent.querySelector('.content-container');
+    if (!rentContainer) return;
+    
+    // Always update the content
+    rentContainer.innerHTML = `
+        <h2>Rental Properties</h2>
+        <div class="rent-content">
+            <p style="margin-bottom: 24px; color: var(--text-secondary);">
+                Browse available rental properties in your area.
+            </p>
+            <div id="rentPropertiesGrid" class="properties-grid">
+                <!-- Rental properties will be shown here -->
+            </div>
+            <div id="rentEmptyState" class="empty-state" style="display: none;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <h3>No rental properties available</h3>
+                <p>Check back soon for rental listings</p>
+            </div>
+        </div>
+    `;
+    
+    // For demo purposes, show properties under $200k as potential rentals
+    // In a real app, you'd have a property type or rent flag
+    const rentalProperties = propertiesData.filter(p => p.listing_price < 200000 && p.status === 'On Market');
+    
+    const rentGrid = document.getElementById('rentPropertiesGrid');
+    const rentEmpty = document.getElementById('rentEmptyState');
+    
+    if (rentGrid && rentEmpty) {
+        rentGrid.innerHTML = '';
+        
+        if (rentalProperties.length > 0) {
+            rentEmpty.style.display = 'none';
+            rentGrid.style.display = 'grid';
+            rentalProperties.forEach(property => {
+                const card = createPropertyCard(property);
+                rentGrid.appendChild(card);
+            });
+        } else {
+            rentGrid.style.display = 'none';
+            rentEmpty.style.display = 'block';
+        }
+    }
+}
+
 // ==================== SELL PAGE ====================
 function renderSellPage() {
+    const sellPage = document.getElementById('sellPage');
+    if (!sellPage) return;
+    
     const sellFormContainer = document.getElementById('sellFormContainer');
+    if (!sellFormContainer) return;
+    
     const user = getCurrentUser();
     
     if (!user) {
         sellFormContainer.innerHTML = `
-            <p>Please <a href="#" id="sellLoginLink" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">sign in</a> to list your property for sale.</p>
+            <div style="text-align: center; padding: 48px 24px;">
+                <h3 style="margin-bottom: 16px; color: var(--text-primary);">Sign In Required</h3>
+                <p style="margin-bottom: 24px; color: var(--text-secondary);">
+                    Please sign in to list your property for sale.
+                </p>
+                <a href="#" id="sellLoginLink" class="btn-primary" style="text-decoration: none; display: inline-block;">Sign In</a>
+            </div>
         `;
         document.getElementById('sellLoginLink')?.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1242,6 +1316,7 @@ navLinks.forEach(link => {
             showPage('buy');
         } else if (page === 'rent') {
             showPage('rent');
+            renderRentPage();
         } else if (page === 'sell') {
             showPage('sell');
             renderSellPage();
