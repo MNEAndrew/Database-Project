@@ -770,7 +770,7 @@ function clearAllFilters() {
     bathroomFilter.value = '';
     typeFilter.value = '';
     statusFilter.value = '';
-    filterProperties();
+    filterProperties().catch(err => console.error('Error filtering:', err));
 }
 
 // Change view
@@ -1095,7 +1095,7 @@ function renderSettingsPage() {
 }
 
 // ==================== RENT PAGE ====================
-function renderRentPage() {
+async function renderRentPage() {
     const rentPageContent = document.getElementById('rentPage');
     if (!rentPageContent) return;
     
@@ -1413,7 +1413,7 @@ function renderSellPage() {
         
         // Add to properties (in real app, this would go to database)
         propertiesData.push(newProperty);
-        filterProperties();
+        filterProperties().catch(err => console.error('Error filtering:', err));
         
         document.getElementById('listPropertySuccess').textContent = 'Property listed successfully!';
         document.getElementById('listPropertySuccess').classList.add('show');
@@ -1442,12 +1442,13 @@ function closeModal(modalId) {
 }
 
 // ==================== EVENT LISTENERS ====================
-searchInput.addEventListener('input', filterProperties);
-priceFilter.addEventListener('change', filterProperties);
-bedroomFilter.addEventListener('change', filterProperties);
-bathroomFilter.addEventListener('change', filterProperties);
-typeFilter.addEventListener('change', filterProperties);
-statusFilter.addEventListener('change', filterProperties);
+// Wrap async filterProperties in arrow functions for event listeners
+searchInput.addEventListener('input', () => filterProperties());
+priceFilter.addEventListener('change', () => filterProperties());
+bedroomFilter.addEventListener('change', () => filterProperties());
+bathroomFilter.addEventListener('change', () => filterProperties());
+typeFilter.addEventListener('change', () => filterProperties());
+statusFilter.addEventListener('change', () => filterProperties());
 clearFilters.addEventListener('click', clearAllFilters);
 
 viewButtons.forEach(btn => {
@@ -1489,7 +1490,7 @@ navLinks.forEach(link => {
             showPage('buy');
         } else if (page === 'rent') {
             showPage('rent');
-            renderRentPage();
+            renderRentPage().catch(err => console.error('Error rendering rent page:', err));
         } else if (page === 'sell') {
             showPage('sell');
             renderSellPage();
