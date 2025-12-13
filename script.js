@@ -1687,7 +1687,7 @@ document.getElementById('accountType')?.addEventListener('change', (e) => {
 });
 
 // Login form
-document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
@@ -1708,7 +1708,7 @@ document.getElementById('loginForm')?.addEventListener('submit', (e) => {
 });
 
 // Signup form
-document.getElementById('signupForm')?.addEventListener('submit', (e) => {
+document.getElementById('signupForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const errorDiv = document.getElementById('signupError');
     const password = document.getElementById('signupPassword').value;
