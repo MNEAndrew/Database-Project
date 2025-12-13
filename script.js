@@ -1163,10 +1163,27 @@ function renderSellPage() {
                         <label for="propertySqft">Square Feet</label>
                         <input type="number" id="propertySqft" class="form-input" min="0" required>
                     </div>
+                    <div class="form-group">
+                        <label for="propertyLotSize">Lot Size (Acres)</label>
+                        <input type="number" id="propertyLotSize" class="form-input" min="0" step="0.01" required>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="propertyDescription">Description</label>
                     <textarea id="propertyDescription" class="form-input" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Property Features/Tags</label>
+                    <div id="featuresContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                        <!-- Features will be added here -->
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="newFeatureInput" class="form-input" placeholder="Add feature (e.g., Garage, Pool)" style="flex: 1;">
+                        <button type="button" id="addFeatureBtn" class="btn-secondary" style="white-space: nowrap;">Add Feature</button>
+                    </div>
+                    <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">
+                        Common features: Garage, Pool, Fireplace, Balcony, Gym Access, Home Office, etc.
+                    </small>
                 </div>
                 <div class="form-group">
                     <label for="propertyImageFile">Property Image</label>
@@ -1184,6 +1201,43 @@ function renderSellPage() {
             <div id="listPropertySuccess" class="success-message"></div>
         </div>
     `;
+    
+    // Features/Tags management
+    let selectedFeatures = [];
+    const featuresContainer = document.getElementById('featuresContainer');
+    const newFeatureInput = document.getElementById('newFeatureInput');
+    const addFeatureBtn = document.getElementById('addFeatureBtn');
+    
+    function renderFeatures() {
+        if (!featuresContainer) return;
+        featuresContainer.innerHTML = selectedFeatures.map((feature, index) => `
+            <span class="feature-tag" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background-color: var(--primary-color); color: white; border-radius: 20px; font-size: 14px;">
+                ${feature}
+                <button type="button" onclick="removeFeature(${index})" style="background: none; border: none; color: white; cursor: pointer; padding: 0; margin-left: 4px; font-size: 16px; line-height: 1;">&times;</button>
+            </span>
+        `).join('');
+    }
+    
+    window.removeFeature = function(index) {
+        selectedFeatures.splice(index, 1);
+        renderFeatures();
+    };
+    
+    addFeatureBtn?.addEventListener('click', () => {
+        const feature = newFeatureInput.value.trim();
+        if (feature && !selectedFeatures.includes(feature)) {
+            selectedFeatures.push(feature);
+            renderFeatures();
+            newFeatureInput.value = '';
+        }
+    });
+    
+    newFeatureInput?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addFeatureBtn.click();
+        }
+    });
     
     // Image preview handler
     const propertyImageFile = document.getElementById('propertyImageFile');
@@ -1228,16 +1282,20 @@ function renderSellPage() {
             bedrooms: parseInt(document.getElementById('propertyBedrooms').value),
             bathrooms: parseFloat(document.getElementById('propertyBathrooms').value),
             square_feet: parseInt(document.getElementById('propertySqft').value),
-            lot_size: 0.25,
+            lot_size: parseFloat(document.getElementById('propertyLotSize').value) || 0.25,
             year_built: new Date().getFullYear(),
             listing_price: parseFloat(document.getElementById('propertyPrice').value),
             status: 'On Market',
             listing_date: new Date().toISOString().split('T')[0],
             description: document.getElementById('propertyDescription').value,
-            features: [],
+            features: selectedFeatures,
             agent: { name: user.name, phone: user.phone, email: user.email },
             image_url: imageData || null
         };
+        
+        // Reset features for next listing
+        selectedFeatures = [];
+        renderFeatures();
         
         // Add to properties (in real app, this would go to database)
         propertiesData.push(newProperty);
@@ -1246,6 +1304,7 @@ function renderSellPage() {
         document.getElementById('listPropertySuccess').textContent = 'Property listed successfully!';
         document.getElementById('listPropertySuccess').classList.add('show');
         document.getElementById('listPropertyForm').reset();
+        propertyImagePreview.style.display = 'none';
         
         setTimeout(() => {
             showPage('buy');
