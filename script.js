@@ -1186,7 +1186,14 @@ async function renderRentPage() {
             console.error('Error fetching rental properties:', error);
             loadingState.style.display = 'none';
             // Fall back to local filtering
-            const rentalProperties = propertiesData.filter(p => p.listing_type === 'Rent' && p.status === 'On Market');
+            console.log('API failed, using local data. Total properties:', propertiesData.length);
+            const rentalProperties = propertiesData.filter(p => {
+                const isRent = p.listing_type === 'Rent';
+                const isOnMarket = p.status === 'On Market';
+                return isRent && isOnMarket;
+            });
+            console.log('Found rental properties:', rentalProperties.length);
+            
             if (rentalProperties.length > 0) {
                 rentEmpty.style.display = 'none';
                 rentGrid.style.display = 'grid';
@@ -1202,7 +1209,15 @@ async function renderRentPage() {
     } else {
         // Fall back to local filtering
         loadingState.style.display = 'none';
-        const rentalProperties = propertiesData.filter(p => p.listing_type === 'Rent' && p.status === 'On Market');
+        console.log('Filtering rental properties from local data. Total properties:', propertiesData.length);
+        const rentalProperties = propertiesData.filter(p => {
+            const isRent = p.listing_type === 'Rent';
+            const isOnMarket = p.status === 'On Market';
+            console.log(`Property ${p.property_id}: listing_type=${p.listing_type}, status=${p.status}, matches=${isRent && isOnMarket}`);
+            return isRent && isOnMarket;
+        });
+        console.log('Found rental properties:', rentalProperties.length);
+        
         if (rentalProperties.length > 0) {
             rentEmpty.style.display = 'none';
             rentGrid.style.display = 'grid';
@@ -1696,6 +1711,12 @@ async function init() {
             console.log('Falling back to local sample data');
             propertiesData = originalSampleData;
             filteredProperties = [...originalSampleData];
+            // Make sure all properties have listing_type
+            propertiesData.forEach(p => {
+                if (!p.listing_type) {
+                    p.listing_type = 'Sale';
+                }
+            });
             setTimeout(() => {
                 renderProperties();
             }, 500);
@@ -1705,6 +1726,12 @@ async function init() {
         console.log('API not available, using local sample data');
         propertiesData = originalSampleData;
         filteredProperties = [...originalSampleData];
+        // Make sure all properties have listing_type
+        propertiesData.forEach(p => {
+            if (!p.listing_type) {
+                p.listing_type = 'Sale';
+            }
+        });
         setTimeout(() => {
             renderProperties();
         }, 500);
